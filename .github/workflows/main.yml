@@ -1,0 +1,35 @@
+name: Windows Cloud PC - AnyDesk
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 360
+
+    steps:
+    - name: Baixando e Instalando o AnyDesk
+      run: |
+        Set-ExecutionPolicy Bypass -Scope Process -Force; 
+        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; 
+        
+        # Baixa o executável oficial do AnyDesk silenciosamente
+        Invoke-WebRequest -Uri "https://anydesk.com" -OutFile "AnyDesk.exe"
+        
+    - name: Iniciando o Acesso Remoto
+      run: |
+        # Inicia o AnyDesk em modo silencioso
+        Start-Process ./AnyDesk.exe -ArgumentList "--start-service"
+        
+        # Aguarda alguns segundos para gerar o ID
+        Start-Sleep -Seconds 10
+        
+    - name: Mantendo o PC Virtual Ativo
+      run: |
+        # Loop para manter o workflow rodando (Máximo de 6 horas/360 minutos permitido pelo GitHub)
+        $timeout = New-TimeSpan -Minutes 350
+        $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+        while ($stopwatch.Elapsed -lt $timeout) {
+            Start-Sleep -Seconds 60
+        }
